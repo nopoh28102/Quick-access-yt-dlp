@@ -77,7 +77,7 @@ The script provides a quick access menu with the following options:
 
 ## Author
 
-[mahmoud nabih](https://github.com/nopoh28102)
+# [Mahmoud Nabih](https://github.com/nopoh28102)
 
 <!-- display the social media buttons in your README -->
 
