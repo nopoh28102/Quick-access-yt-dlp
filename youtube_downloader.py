@@ -1,80 +1,27 @@
-# -*- coding: utf-8 -*-
-from yt_dlp import YoutubeDL
-import os
-import sys
-import requests
+from pytube import YouTube
+from pytube.exceptions import RegexMatchError
 from termcolor import colored
-from colorama import init
+import os
+import ssl
+from tqdm import tqdm
+import time
 
-init()  # Initialize colorama for Windows
+# Define global variables
+video_urls = []
+output_path = None
+selected_quality = None
+audio_only = None
+selected_resolution = None
+compressed_video = None
+start_time = None
+end_time = None
+encoding = None
+proxy_settings = None
 
-def check_internet_connection():
-    try:
-        requests.get('http://www.google.com', timeout=1)
-        return True
-    except requests.ConnectionError:
-        return False
-
-def check_youtube_link(url):
-    if 'youtube.com' in url:
-        return True
-    else:
-        return False
-
-def progress_hook(d):
-    if d['status'] == 'downloading':
-        downloaded_percent = d['_percent_str']
-        downloaded_size = d['_total_bytes_str']
-        speed = d['_speed_str']
-        eta = d['_eta_str']
-        sys.stdout.write("\rDownloading: {} ({}) at {} - ETA: {}".format(downloaded_percent, downloaded_size, speed, eta))
-        sys.stdout.flush()
-
-def download_videos(urls, options):
-    ydl_opts = {
-        'format': 'bestvideo+bestaudio',
-        'outtmpl': '%(title)s.%(ext)s',
-        'quiet': False,
-        'no_warnings': True,
-        'retries': 3,
-        'progress_hooks': [progress_hook],  # Add this line for progress bar
-    }
-    if 'quality' in options:
-        ydl_opts['format'] = options['quality']
-    if 'output_path' in options:
-        ydl_opts['outtmpl'] = os.path.join(options['output_path'], '%(title)s.%(ext)s')
-    if 'audio_only' in options and options['audio_only']:
-        ydl_opts['postprocessors'] = [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}]
-    if 'resolution' in options:
-        ydl_opts['format'] = f'bestvideo[height<={options["resolution"]}]+bestaudio/best[height<={options["resolution"]}]'
-    if 'compressed' in options and options['compressed']:
-        ydl_opts['format'] = 'bestvideo[ext=mp4]+bestaudio/best[ext=mp4]'
-    if 'subtitles' in options and options['subtitles']:
-        ydl_opts['writesubtitles'] = True
-        ydl_opts['allsubtitles'] = True
-    if 'start' in options and 'end' in options:
-        ydl_opts['postprocessors'] = [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '192'}]
-        ydl_opts['start'] = options['start']
-        ydl_opts['end'] = options['end']
-    if 'encoding' in options:
-        ydl_opts['encoding'] = options['encoding']
-    if 'no_check_certificate' in options and options['no_check_certificate']:
-        ydl_opts['no_check_certificate'] = True
-    if 'proxy' in options:
-        ydl_opts['proxy'] = options['proxy']
-
-    with YoutubeDL(ydl_opts) as ydl:
-        for url in urls:
-            ydl.download([url])
-
-def get_video_info(url):
-    with YoutubeDL({}) as ydl:
-        info_dict = ydl.extract_info(url, download=False)
-    return info_dict
 
 def print_menu():
     print("╔════════════════════════════════════════════════════════╗")
-    print("║            Quick Access Menu (nabih)                   ║")
+    print("║                   Quick Access Menu                    ║")
     print("╠════════════════════════════════════════════════════════╣")
     print("║ 1. " + colored("Select Quality", "green") + "          ║")
     print("║ -----------------------------------------------------  ║")
@@ -101,56 +48,259 @@ def print_menu():
     print("║ 12. " + colored("Exit", "red") + "                     ║")
     print("╚════════════════════════════════════════════════════════╝")
 
-if __name__ == "__main__":
-    video_urls = []
+
+
+
+
+
+def on_progress(stream, chunk, bytes_remaining):
+    total_size = stream.filesize
+    bytes_downloaded = total_size - bytes_remaining
+    percentage = (bytes_downloaded / total_size) * 100
+    stars = int(percentage / 2)
+    progress_bar = '[' + colored('*' * stars, 'green') + ' ' * (50 - stars) + ']'
+    print(f"\rDownloaded {bytes_downloaded} bytes out of {total_size} bytes ({percentage:.2f}%) {progress_bar}", end='', flush=True)
+
+
+
+
+def get_video_urls():
+    global video_urls
     while True:
         url = input("Enter a YouTube video link (press enter to finish): ")
         if url.strip() == "":
             break
         video_urls.append(url.strip())
 
-    if not check_internet_connection():
-        print("No internet connection. Please check your connection and try again.")
-        sys.exit()
 
-    invalid_urls = [url for url in video_urls if not check_youtube_link(url)]
-    if invalid_urls:
-        print("The following entered links are not YouTube video links:")
-        for invalid_url in invalid_urls:
-            print(invalid_url)
-        print("Please make sure all entered links are valid video links and try again.")
-        sys.exit()
 
-    options = {}
+def select_quality():
+    global selected_quality
+    yt = YouTube(video_urls[0], on_progress_callback=on_progress)
+    video_streams = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc()
+
+    print("Available video qualities:")
+    for i, stream in enumerate(video_streams):
+        print(f"{i+1}. Resolution: {stream.resolution}, Format: {stream.mime_type}")
+
+    choice = int(input("Enter the number of the desired quality: "))
+    if 1 <= choice <= len(video_streams):
+        selected_quality = video_streams[choice - 1]
+        print(f"You selected {selected_quality.resolution} resolution.")
+    else:
+        print("Invalid choice. Please try again.")
+
+
+def select_output_path():
+    global output_path
+    output_path = input("Enter output path: ")
+    if os.path.isdir(output_path):
+        print("Output path is valid.")
+    else:
+        print("Invalid output path. Please try again.")
+
+
+def select_audio_only():
+    global audio_only
+    choice = input("Do you want to download audio only? (yes/no): ").lower()
+    if choice == 'yes':
+        print("Downloading audio only.")
+        audio_only = True
+    elif choice == 'no':
+        print("Downloading full video.")
+        audio_only = False
+    else:
+        print("Invalid choice. Please try again.")
+
+
+def select_resolution():
+    global selected_resolution
+    yt = YouTube(video_urls[0], on_progress_callback=on_progress)
+    video_streams = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc()
+
+    print("Available video resolutions:")
+    for i, stream in enumerate(video_streams):
+        print(f"{i+1}. Resolution: {stream.resolution}, Format: {stream.mime_type}")
+
+    choice = int(input("Enter the number of the desired resolution: "))
+    if 1 <= choice <= len(video_streams):
+        selected_resolution = video_streams[choice - 1]
+        print(f"You selected {selected_resolution.resolution} resolution.")
+    else:
+        print("Invalid choice. Please try again.")
+
+
+def select_compressed_video():
+    global compressed_video
+    choice = input("Do you want to download compressed video? (yes/no): ").lower()
+    if choice == 'yes':
+        print("Downloading compressed video.")
+        compressed_video = True
+    elif choice == 'no':
+        print("Downloading full quality video.")
+        compressed_video = False
+    else:
+        print("Invalid choice. Please try again.")
+
+
+def download_subtitles():
+    global output_path
+    yt = YouTube(video_urls[0])
+    subtitles = yt.captions.all()
+
+    if subtitles:
+        print("Available subtitles:")
+        for subtitle in subtitles:
+            print("- Language: {}, Code: {}".format(subtitle.name, subtitle.code))
+        
+        choice = input("Enter subtitle code to download (leave empty to skip): ").strip()
+        if choice:
+            try:
+                selected_subtitle = yt.captions.get_by_language_code(choice)
+                selected_subtitle.download(output_path, srt=True)
+                print("Subtitles downloaded successfully!")
+            except:
+                print("Error downloading subtitles. Please try again.")
+    else:
+        print("No subtitles available for this video.")
+
+
+def select_start_end():
+    global start_time, end_time
+    start_time = input("Enter start time (format: HH:MM:SS): ")
+    end_time = input("Enter end time (format: HH:MM:SS): ")
+
+
+def select_encoding():
+    global encoding
+    encoding = input("Enter encoding (leave empty for default): ").strip()
+
+
+def ignore_certificate_check():
+    # Ignore certificate verification
+    ssl._create_default_https_context = ssl._create_unverified_context
+    print("Certificate check will be ignored.")
+
+
+def select_proxy_settings():
+    global proxy_settings
+    proxy_type = input("Enter proxy type (http, https, socks4, socks5): ")
+    proxy_ip = input("Enter proxy IP address: ")
+    proxy_port = input("Enter proxy port number: ")
+    # يمكنك هنا إضافة مزيد من الإعدادات للوكيل إذا لزم الأمر
+    proxy_settings = {
+        "proxy_type": proxy_type,
+        "proxy_ip": proxy_ip,
+        "proxy_port": proxy_port
+    }
+
+
+def get_video_information(url):
+    yt = YouTube(url)
+    print("Title:", yt.title)
+    print("Author:", yt.author)
+    print("Length (seconds):", yt.length)
+    print("Views:", yt.views)
+    print("Rating:", yt.rating)
+
+
+
+def extract_video_id(url):
+    # تقوم هذه الدالة بإستخراج معرف الفيديو من العنوان URL
+    if "youtube.com/watch?v=" in url:
+        video_id_index = url.index("=") + 1
+        video_id = url[video_id_index:]
+    elif "youtu.be/" in url:
+        video_id_index = url.index("be/") + 3
+        video_id = url[video_id_index:]
+    else:
+        raise ValueError("Invalid YouTube URL")
+    return video_id
+
+
+
+def download_video():
+    global output_path, selected_quality, audio_only, selected_resolution, compressed_video, start_time, end_time, encoding, proxy_settings
+
+    try:
+        select_quality()
+    except ValueError:
+        print("Invalid YouTube URL. Please enter a valid URL.")
+        return
+
+    try:
+        yt = YouTube(video_urls[0], on_progress_callback=on_progress)
+    except RegexMatchError:
+        print("Error: Unable to fetch video information.")
+        return
+
+    if selected_resolution:
+        video = selected_resolution
+    else:
+        video = selected_quality
+
+    if audio_only is not None and audio_only:
+        video = yt.streams.filter(only_audio=True).first()
+
+    if start_time and end_time:
+        video = video.streams.filter(subtype='mp4').first()
+        video.download(output_path, filename_prefix=f'{start_time}-{end_time}')
+
+    if encoding:
+        video.download(output_path, filename_prefix=encoding)
+
+    if proxy_settings:
+        tqdm.write("Downloading video...")
+        video.download(output_path, filename_prefix='proxy')
+    else:
+        tqdm.write("Downloading video...")
+        video.download(output_path)
+
+    tqdm.write("Download completed.")
+
+
+def exit_program():
+    print("Exiting...")
+    return
+
+def main():
+    global selected_quality, output_path, audio_only, selected_resolution, compressed_video, start_time, end_time, encoding, proxy_settings
+    
+    get_video_urls()
     while True:
         print_menu()
-        choice = input("\nChoose option number: ")
+        choice = input("Enter your choice: ")
         
         if choice == '1':
-            options['quality'] = input("Enter desired quality (best/worst/etc): ")
+            select_quality()
         elif choice == '2':
-            options['output_path'] = input("Enter output path (leave blank for current directory): ")
+            select_output_path()
         elif choice == '3':
-            options['audio_only'] = input("Download audio only? (yes/no): ").lower() == 'yes'
+            select_audio_only()
         elif choice == '4':
-            options['resolution'] = input("Enter maximum resolution (e.g., 720): ")
+            select_resolution()
         elif choice == '5':
-            options['compressed'] = input("Download compressed video (mp4)? (yes/no): ").lower() == 'yes'
+            select_compressed_video()
         elif choice == '6':
-            options['subtitles'] = input("Download subtitles? (yes/no): ").lower() == 'yes'
+            download_subtitles()
         elif choice == '7':
-            options['start'] = input("Enter start time (in seconds, leave blank for full video): ")
-            options['end'] = input("Enter end time (in seconds, leave blank for full video): ")
+            select_start_end()
         elif choice == '8':
-            options['encoding'] = input("Enter desired encoding (leave blank for default): ")
+            select_encoding()
         elif choice == '9':
-            options['no_check_certificate'] = input("Ignore certificate check? (yes/no): ").lower() == 'yes'
+            ignore_certificate_check()
         elif choice == '10':
-            options['proxy'] = input("Enter proxy settings (leave blank if not required): ")
+            select_proxy_settings()
         elif choice == '11':
-            download_videos(video_urls, options)
+            if output_path:
+                download_video()
+            else:
+                print("Please select output path first.")
         elif choice == '12':
-            print("Exiting.")
-            sys.exit()
+            exit_program()
+            break
         else:
-            print("Invalid choice. Please select a valid option from the menu.")
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
