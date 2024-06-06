@@ -10,12 +10,12 @@ This Python script hooks you up with downloading YouTube videos, complete with a
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/nopoh28102/yt-dlp.git
+    git clone https://github.com/nopoh28102/Quick-access-yt-dlp.git
     ```
 
 2. **Navigate to the downloaded directory:**
     ```bash
-    cd yt-dlp
+    cd Quick-access-yt-dlp
     ```
 
 3. **Install the required dependencies:**
@@ -26,7 +26,7 @@ This Python script hooks you up with downloading YouTube videos, complete with a
 ---
 
 ## Usage
-https://github.com/nopoh28102/yt-dlp/assets/150601942/ea69fb71-ab90-4e3b-83af-7a38ca4b0ad9
+https://github.com/nopoh28102/Quick-access-yt-dlp/assets/150601942/ea69fb71-ab90-4e3b-83af-7a38ca4b0ad9
 
 
 
