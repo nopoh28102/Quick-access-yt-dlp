@@ -1,4 +1,6 @@
-# YouTube Video Downloader ![](https://user-images.githubusercontent.com/18350557/176309783-0785949b-9127-417c-8b55-ab5a4333674e.gif)
+# YT-DLP: Customizable YouTube Video Downloader
+
+![YT-DLP](https://user-images.githubusercontent.com/18350557/176309783-0785949b-9127-417c-8b55-ab5a4333674e.gif)
 
 [![YT-DLP](https://raw.githubusercontent.com/yt-dlp/yt-dlp/master/.github/banner.svg)](#readme)
 
@@ -28,8 +30,6 @@ This Python script hooks you up with downloading YouTube videos, complete with a
 ## Usage
 https://github.com/nopoh28102/Quick-access-yt-dlp/assets/150601942/ea69fb71-ab90-4e3b-83af-7a38ca4b0ad9
 
-
-
 1. **Run the script:**
     ```bash
     python youtube_downloader.py
@@ -47,6 +47,8 @@ https://github.com/nopoh28102/Quick-access-yt-dlp/assets/150601942/ea69fb71-ab90
 - Customize output path, video quality, resolution, and more.
 - Download audio only or extract subtitles.
 - Progress bar shows the download progress.
+- Download multiple links.
+- Download full playlist.
 
 ---
 
