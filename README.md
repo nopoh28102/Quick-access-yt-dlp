@@ -98,6 +98,17 @@ The script provides a quick access menu with the following options:
 [5]: https://www.github.com/nopoh28102
 [6]: https://in.pinterest.com/username
 [7]: https://username.tumblr.com
+
+
+<div align="center">
+  <a href="https://www.instagram.com/m.nopoh/">
+    <img src="https://img.shields.io/badge/Follow%20%40m.nopoh-Follow%20on%20Instagram-833AB4?logo=instagram&style=for-the-badge" alt="Instagram follow button">
+  </a>
+</div>
+
+
+
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -116,3 +127,5 @@ from termcolor import colored
 from colorama import init
 
 # YouTube Downloader code goes here...
+
+
