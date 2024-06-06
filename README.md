@@ -26,6 +26,9 @@ This Python script hooks you up with downloading YouTube videos, complete with a
 ---
 
 ## Usage
+https://github.com/nopoh28102/yt-dlp/assets/150601942/ea69fb71-ab90-4e3b-83af-7a38ca4b0ad9
+
+
 
 1. **Run the script:**
     ```bash
