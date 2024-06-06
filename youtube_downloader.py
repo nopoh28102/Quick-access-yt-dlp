@@ -1,10 +1,11 @@
 from pytube import YouTube
-from pytube.exceptions import RegexMatchError
 from termcolor import colored
+from pytube.exceptions import RegexMatchError
 import os
 import ssl
 from tqdm import tqdm
 import time
+import youtube_dl
 
 # Define global variables
 video_urls = []
@@ -21,7 +22,7 @@ proxy_settings = None
 
 def print_menu():
     print("╔════════════════════════════════════════════════════════╗")
-    print("║                   Quick Access Menu                    ║")
+    print("║                   Quick Access Menu      Nopoh         ║")
     print("╠════════════════════════════════════════════════════════╣")
     print("║ 1. " + colored("Select Quality", "green") + "          ║")
     print("║ -----------------------------------------------------  ║")
@@ -49,19 +50,13 @@ def print_menu():
     print("╚════════════════════════════════════════════════════════╝")
 
 
-
-
-
-
-def on_progress(stream, chunk, bytes_remaining):
+def on_progress(stream, chunk, remaining):
     total_size = stream.filesize
-    bytes_downloaded = total_size - bytes_remaining
+    bytes_downloaded = total_size - remaining
     percentage = (bytes_downloaded / total_size) * 100
     stars = int(percentage / 2)
     progress_bar = '[' + colored('*' * stars, 'green') + ' ' * (50 - stars) + ']'
     print(f"\rDownloaded {bytes_downloaded} bytes out of {total_size} bytes ({percentage:.2f}%) {progress_bar}", end='', flush=True)
-
-
 
 
 def get_video_urls():
@@ -71,7 +66,6 @@ def get_video_urls():
         if url.strip() == "":
             break
         video_urls.append(url.strip())
-
 
 
 def select_quality():
@@ -98,6 +92,7 @@ def select_output_path():
         print("Output path is valid.")
     else:
         print("Invalid output path. Please try again.")
+
 
 
 def select_audio_only():
@@ -152,7 +147,7 @@ def download_subtitles():
         print("Available subtitles:")
         for subtitle in subtitles:
             print("- Language: {}, Code: {}".format(subtitle.name, subtitle.code))
-        
+
         choice = input("Enter subtitle code to download (leave empty to skip): ").strip()
         if choice:
             try:
@@ -187,7 +182,7 @@ def select_proxy_settings():
     proxy_type = input("Enter proxy type (http, https, socks4, socks5): ")
     proxy_ip = input("Enter proxy IP address: ")
     proxy_port = input("Enter proxy port number: ")
-    # يمكنك هنا إضافة مزيد من الإعدادات للوكيل إذا لزم الأمر
+    # You can add more proxy settings here if necessary
     proxy_settings = {
         "proxy_type": proxy_type,
         "proxy_ip": proxy_ip,
@@ -204,9 +199,8 @@ def get_video_information(url):
     print("Rating:", yt.rating)
 
 
-
 def extract_video_id(url):
-    # تقوم هذه الدالة بإستخراج معرف الفيديو من العنوان URL
+    # This function extracts the video ID from the URL
     if "youtube.com/watch?v=" in url:
         video_id_index = url.index("=") + 1
         video_id = url[video_id_index:]
@@ -218,15 +212,11 @@ def extract_video_id(url):
     return video_id
 
 
-
 def download_video():
     global output_path, selected_quality, audio_only, selected_resolution, compressed_video, start_time, end_time, encoding, proxy_settings
 
-    try:
-        select_quality()
-    except ValueError:
-        print("Invalid YouTube URL. Please enter a valid URL.")
-        return
+    if not output_path:
+        output_path = os.getcwd()  # Set default output path to current working directory
 
     try:
         yt = YouTube(video_urls[0], on_progress_callback=on_progress)
@@ -234,10 +224,15 @@ def download_video():
         print("Error: Unable to fetch video information.")
         return
 
-    if selected_resolution:
-        video = selected_resolution
-    else:
+    if selected_quality:
         video = selected_quality
+    else:
+        video_streams = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc()
+        if not video_streams:
+            print("Error: No video stream available.")
+            return
+        else:
+            video = video_streams[0]
 
     if audio_only is not None and audio_only:
         video = yt.streams.filter(only_audio=True).first()
@@ -259,18 +254,20 @@ def download_video():
     tqdm.write("Download completed.")
 
 
+
 def exit_program():
     print("Exiting...")
     return
 
+
 def main():
     global selected_quality, output_path, audio_only, selected_resolution, compressed_video, start_time, end_time, encoding, proxy_settings
-    
+
     get_video_urls()
     while True:
         print_menu()
         choice = input("Enter your choice: ")
-        
+
         if choice == '1':
             select_quality()
         elif choice == '2':
@@ -292,15 +289,13 @@ def main():
         elif choice == '10':
             select_proxy_settings()
         elif choice == '11':
-            if output_path:
-                download_video()
-            else:
-                print("Please select output path first.")
+            download_video()
         elif choice == '12':
             exit_program()
             break
         else:
             print("Invalid choice. Please try again.")
+
 
 if __name__ == "__main__":
     main()
