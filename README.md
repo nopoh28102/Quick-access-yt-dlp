@@ -1,4 +1,6 @@
-# YouTube Video Downloader
+# YouTube Video Downloader ![](https://user-images.githubusercontent.com/18350557/176309783-0785949b-9127-417c-8b55-ab5a4333674e.gif)
+
+[![YT-DLP](https://raw.githubusercontent.com/yt-dlp/yt-dlp/master/.github/banner.svg)](#readme)
 
 This Python script hooks you up with downloading YouTube videos, complete with a range of customization options.
 
@@ -77,8 +79,25 @@ The script provides a quick access menu with the following options:
 
 [mahmoud nabih](https://github.com/nopoh28102)
 
----
+<!-- display the social media buttons in your README -->
 
+[![facebook](https://github.com/shikhar1020jais1/Git-Social/blob/master/Icons/Facebook.png (Facebook))][1]
+[![instagram](https://github.com/shikhar1020jais1/Git-Social/blob/master/Icons/Instagram.png (Instagram))][2]
+[![twitter](https://github.com/shikhar1020jais1/Git-Social/blob/master/Icons/Twitter.png (Twitter))][3]
+[![linkedin](https://github.com/shikhar1020jais1/Git-Social/blob/master/Icons/LinkedIn.png (LinkedIn))][4]
+[![github](https://github.com/shikhar1020jais1/Git-Social/blob/master/Icons/Github.png (Github))][5]
+[![pinterest](https://github.com/shikhar1020jais1/Git-Social/blob/master/Icons/pinterest.png (Pinterest))][6]
+[![tumblr](https://github.com/shikhar1020jais1/Git-Social/blob/master/Icons/tumblr.png (Tumblr))][7]
+
+<!-- To Link your profile to the media buttons -->
+
+[1]: https://www.facebook.com/username
+[2]: https://www.instagram.com/username
+[3]: https://www.twitter.com/username
+[4]: https://www.linkedin.com/in/username
+[5]: https://www.github.com/nopoh28102
+[6]: https://in.pinterest.com/username
+[7]: https://username.tumblr.com
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
